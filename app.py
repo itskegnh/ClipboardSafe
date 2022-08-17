@@ -119,7 +119,7 @@ def create_post(tab):
 def view(post):
     post = posts.find_one({'_id': post})
     if not post: return flask.redirect('/')
-    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
+    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'])
 
 @app.route('/archive/view/<post_id>')
 def archive_view(post_id):
@@ -129,7 +129,7 @@ def archive_view(post_id):
             post = postt
             break
     if not post: return flask.redirect('/')
-    return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
+    return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'])
 
 @app.route('/delete/post/<post_id>')
 def delete_post(post_id):
