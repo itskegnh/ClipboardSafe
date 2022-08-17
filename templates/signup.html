@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard</title>
+    <!-- flask style lienk -->
+    {% if dark %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark/signup.css') }}">
+    {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/light/signup.css') }}">
+    {% endif %}
+</head>
+<body>
+    <nav class="nav">
+        <a class="nav-button" href="/login">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1>Sign Up</h1>
+    </nav>
+    <div class="container">
+        <form action="/signup" method="post">
+            <input class="input" type="text" name="full-name" placeholder="Full Name"><br>
+            <input class="input" type="text" name="username" placeholder="Username"><br>
+            <input class="input" type="password" name="password" placeholder="Password"><br>
+            <input class="input" type="password" name="confirm-password" placeholder="Confirm Password"><br>
+            <input class="inp-sub" type="submit" name="submit" value="Sign Up">
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

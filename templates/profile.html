@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard</title>
+    <!-- flask style lienk -->
+    {% if dark %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark/profile.css') }}">
+    {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/light/profile.css') }}">
+    {% endif %}
+    
+</head>
+<body>
+    <nav class="nav">
+        <a class="nav-button" href="/">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1>Profile</h1>
+    </nav>
+    <div class="container-container">
+        <div class="container">
+            <a class="widget" href="/toggle-dark">
+                <h1>Dark Mode</h1>
+                <p>Avoid eye-strain with an inverted theme.</p>
+            </a>
+            <a class="widget" href="/archive">
+                <h1>Private Archive</h1>
+                <p>A limbo-like space where all your deleted posts sit.</p>
+            </a>
+            <a class="widget" href="/logout">
+                <h1>Log Out</h1>
+                <p>Log out of your account on this device.</p>
+            </a>
+            <!-- <a class="widget" href="/delete/account/{{ token }}">
+                <h1>Delete Account</h1>
+                <p>Permenantly remove your account, and all your posts.</p>
+            </a> -->
+        </div>
+    </div>
+</body>
+</html>
