@@ -77,6 +77,31 @@ h1 {
     background: var(--black);
 }
 
+
+.share-button {
+    position: absolute;
+    top: 0;
+    right: calc(20px + 2.5rem + 2px);
+    color: var(--black);
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.share-button svg {
+    width: 2.5rem;
+    stroke-width: 2px;
+    border: 3px solid var(--black);
+    color: var(--black);
+    background: var(--white);
+}
+
+.share-button svg:hover {
+    cursor: pointer;
+    color: var(--white);
+    background: var(--black);
+}
+
 .widget {
     position: relative;
     width: 311px;
