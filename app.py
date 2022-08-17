@@ -155,6 +155,8 @@ def delete_account(account_id):
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if verify(flask.session.get('token')):
+        return flask.redirect('/')
     if flask.request.method == 'GET':
         return flask.render_template('signup.html')
     else:
@@ -179,6 +181,8 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if verify(flask.session.get('token')):
+        return flask.redirect('/')
     if flask.request.method == 'GET':
         return flask.render_template('login.html')
     else:
