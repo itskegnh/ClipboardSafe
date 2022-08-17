@@ -123,12 +123,14 @@ def view(post):
 
 @app.route('/archive/view/<post_id>')
 def archive_view(post_id):
+    if not verify(flask.session.get('token')): return flask.redirect('/login')
     post = None
     for postt in accounts.find_one({'_id': flask.session.get('token')}).get('archive', []):
         if postt['_id'] == post_id:
             post = postt
             break
     if not post: return flask.redirect('/')
+    if post['owner'] != flask.session.get('token'): return flask.redirect('/')
     return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'])
 
 @app.route('/delete/post/<post_id>')
