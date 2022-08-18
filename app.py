@@ -63,6 +63,12 @@ def create_post(tab):
     if flask.request.method == 'GET':
         return flask.render_template('create' + tab + '.html', dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
 
+    pretify = {
+        "fa": "Front Area",
+        "ba": "Back Area",
+        "tr": "Training"
+    }
+
     # POST
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     date = datetime.datetime.utcnow()
@@ -73,6 +79,7 @@ def create_post(tab):
         'owner': flask.session.get('token'),
         'date': date,
         'managers': flask.request.form.get('managers'),
+        'type': pretify[tab],
 
         'oepe': flask.request.form.get('oepe'),
         'mfy': flask.request.form.get('mfy'),
@@ -123,7 +130,7 @@ def view(post):
     dark = False
     if acc:
         dark = acc.get('dark', False)
-    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=dark, post_id=post['_id'])
+    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=dark, post_id=post['_id'], archive=False)
 
 @app.route('/archive/view/<post_id>')
 def archive_view(post_id):
@@ -135,7 +142,7 @@ def archive_view(post_id):
             break
     if not post: return flask.redirect('/')
     if post['owner'] != flask.session.get('token'): return flask.redirect('/')
-    return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'])
+    return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'], archive=True)
 
 @app.route('/delete/post/<post_id>')
 def delete_post(post_id):
@@ -207,7 +214,7 @@ def logout():
     return flask.redirect('/')
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=False)
+    app.run(host="0.0.0.0", port=5080, debug=True)
 
 
 

@@ -174,7 +174,8 @@ h1 {
 
 .input {
     width: 100%;
-    height: min-content;
+    text-overflow: ellipsis;
+    height: max-content;
     border: 3px dashed var(--black);
     padding: 0.5rem;
     max-width: 25rem;
@@ -183,6 +184,14 @@ h1 {
     background-color: var(--white);
     text-align: center;
     margin-top: 0.5rem;
+}
+
+.wrap { 
+    white-space: pre-wrap;      /* CSS3 */   
+    white-space: -moz-pre-wrap; /* Firefox */    
+    white-space: -pre-wrap;     /* Opera <7 */   
+    white-space: -o-pre-wrap;   /* Opera 7 */    
+    word-wrap: break-word;      /* IE */
 }
 
 .input::placeholder {
