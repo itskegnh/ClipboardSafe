@@ -37,7 +37,7 @@ def public_account(public_account_token):
     acc = accounts.find_one({'_id': flask.session.get('token')})
     dark = False
     if acc: dark = acc.get('dark', False)
-    return flask.render_template('index.html', widgets=widgets, dark=dark, own=account.get('_id') == flask.session.get('token'))
+    return flask.render_template('index.html', widgets=widgets, dark=dark, own=account.get('_id') == flask.session.get('token'), all=False)
 
 @app.route('/archive')
 def archive():
@@ -240,9 +240,10 @@ def all_posts():
         return flask.redirect('/')
     widgets = []
     for post in posts.find({'archived': {'$ne': True}}):
+        post['name'] = accounts.find_one({'_id': post['owner']}).get('full_name', post.get('type', 'Unknown'))
         widgets.append(post)
     widgets.reverse()
-    return flask.render_template('index.html', widgets=widgets, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), own=False)
+    return flask.render_template('index.html', widgets=widgets, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), own=False, all=True)
 
 @app.route('/reset-token')
 def reset_token():
