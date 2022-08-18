@@ -19,18 +19,32 @@ def verify(token):
 def index():
     if not verify(flask.session.get('token')):
         return flask.redirect('/login')
+    account = accounts.find_one({'_id': flask.session.get('token')})
+    if not account.get('public_token'):
+        accounts.update_one({'_id': flask.session.get('token')}, {'$set': {'public_token': hash(str(time.time()) + flask.session.get('token'))}})
+    account = accounts.find_one({'_id': flask.session.get('token')})
+    return flask.redirect('/posts/' + account.get('public_token'))
+
+@app.route('/posts/<public_account_token>')
+def public_account(public_account_token):
     widgets = []
-    for post in posts.find({'owner': flask.session.get('token')}):
+    account = accounts.find_one({'public_token': public_account_token})
+    for post in posts.find({'owner': account.get('_id')}):
+        if post.get('archived'):
+            continue
         widgets.append(post)
     widgets.reverse()
-    return flask.render_template('index.html', widgets=widgets, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
+    acc = accounts.find_one({'_id': flask.session.get('token')})
+    dark = False
+    if acc: dark = acc.get('dark', False)
+    return flask.render_template('index.html', widgets=widgets, dark=dark, own=account.get('_id') == flask.session.get('token'))
 
 @app.route('/archive')
 def archive():
     if not verify(flask.session.get('token')):
         return flask.redirect('/login')
     widgets = []
-    for post in accounts.find_one({'_id': flask.session.get('token')}).get('archive', []):
+    for post in posts.find({'owner': flask.session.get('token'), 'archived': True}):
         widgets.append(post)
     widgets.reverse()
     return flask.render_template('archive.html', widgets=widgets, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
@@ -125,7 +139,8 @@ def create_post(tab):
 @app.route('/view/<post>')
 def view(post):
     post = posts.find_one({'_id': post})
-    if not post: return flask.redirect('/')
+    if not post: 
+        return """<h1>Invalid Post Link!</h1>"""
     acc = accounts.find_one({'_id': flask.session.get('token')})
     dark = False
     if acc:
@@ -135,14 +150,19 @@ def view(post):
 @app.route('/archive/view/<post_id>')
 def archive_view(post_id):
     if not verify(flask.session.get('token')): return flask.redirect('/login')
-    post = None
-    for postt in accounts.find_one({'_id': flask.session.get('token')}).get('archive', []):
-        if postt['_id'] == post_id:
-            post = postt
-            break
+    post = posts.find_one({'_id': post_id, 'archived': True})
     if not post: return flask.redirect('/')
     if post['owner'] != flask.session.get('token'): return flask.redirect('/')
     return flask.render_template('view.html', post=post, visitor='', owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'], archive=True)
+
+@app.route('/archive/restore/<post_id>')
+def archive_restore(post_id):
+    if not verify(flask.session.get('token')): return flask.redirect('/login')
+    post = posts.find_one({'_id': post_id, 'archived': True})
+    if not post: return flask.redirect('/')
+    if post['owner'] != flask.session.get('token'): return flask.redirect('/')
+    posts.update_one({'_id': post_id}, {'$set': {'archived': False}})
+    return flask.redirect('/archive')
 
 @app.route('/delete/post/<post_id>')
 def delete_post(post_id):
@@ -151,8 +171,7 @@ def delete_post(post_id):
     post = posts.find_one({'_id': post_id})
     if not post: return flask.redirect('/')
     if post['owner'] != flask.session.get('token'): return flask.redirect('/')
-    accounts.update_one({'_id': post['owner']}, {'$push': {'archive': post}})
-    posts.delete_one({'_id': post_id})
+    posts.update_one({'_id': post_id}, {'$set': {'archived': True}})
     return flask.redirect('/')
 
 @app.route('/delete/account/<account_id>')
@@ -213,10 +232,23 @@ def logout():
     flask.session.pop('token', None)
     return flask.redirect('/')
 
+@app.route('/posts/all')
+def all_posts():
+    if not verify(flask.session.get('token')): return flask.redirect('/login')
+    account = accounts.find_one({'_id': flask.session.get('token')})
+    if not account.get('admin', False):
+        return flask.redirect('/')
+    widgets = []
+    for post in posts.find({'archived': {'$ne': True}}):
+        widgets.append(post)
+    widgets.reverse()
+    return flask.render_template('index.html', widgets=widgets, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), own=False)
+
+@app.route('/reset-token')
+def reset_token():
+    if not verify(flask.session.get('token')): return flask.redirect('/login')
+    accounts.update_one({'_id': flask.session.get('token')}, {'$set': {'public_token': hash(str(time.time()) + flask.session.get('token'))}})
+    return flask.redirect('/')
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5080, debug=True)
-
-
-
-
-# MAKE ARCHIVE VIEW BACK TO ARCHIVE NOT HOME
