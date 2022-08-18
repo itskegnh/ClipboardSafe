@@ -119,7 +119,11 @@ def create_post(tab):
 def view(post):
     post = posts.find_one({'_id': post})
     if not post: return flask.redirect('/')
-    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False), post_id=post['_id'])
+    acc = accounts.find_one({'_id': flask.session.get('token')})
+    dark = False
+    if acc:
+        dark = acc.get('dark', False)
+    return flask.render_template('view.html', post=post, visitor=flask.session.get('token'), owner=accounts.find_one({'_id': post['owner']}), dark=dark, post_id=post['_id'])
 
 @app.route('/archive/view/<post_id>')
 def archive_view(post_id):
@@ -204,3 +208,8 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5050, debug=False)
+
+
+
+
+# MAKE ARCHIVE VIEW BACK TO ARCHIVE NOT HOME
