@@ -192,7 +192,7 @@ def invite():
     if not verify(flask.session.get('token')):
         return flask.redirect('/login')
     acc = accounts.find_one({'_id': flask.session.get('token')})
-    if time.time() - acc.get("code-gen", 0) < 10:  
+    if time.time() - acc.get("code-gen", 0) < 3600:  
         code = "This reasource is being rate-limited. Codes can be generated a max of 1 time per hour."
         return flask.render_template('invite.html', valid=False, code=code, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
     code = hash(str(time.time()) + flask.session.get('token'))
