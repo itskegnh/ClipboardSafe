@@ -4,6 +4,8 @@ client = pymongo.MongoClient('mongodb+srv://kegnh:Roto2007!@cluster0.y6h0h.mongo
 db = client['clipboard']
 accounts = db['accounts']
 posts = db['posts']
+invites = db['invites']
+tutorials = [{'title': 'Create Account', 'description': 'Learn how to sign up for an account.', 'url': 'signup'}]
 
 def hash(string):
     return hashlib.sha256(string.encode('utf-8')).hexdigest()
@@ -185,6 +187,20 @@ def delete_account(account_id):
     accounts.delete_one({'_id': account_id})
     return flask.redirect('/')
 
+@app.route('/invite')
+def invite():
+    if not verify(flask.session.get('token')):
+        return flask.redirect('/login')
+    acc = accounts.find_one({'_id': flask.session.get('token')})
+    if time.time() - acc.get("code-gen", 0) < 10:  
+        code = "This reasource is being rate-limited. Codes can be generated a max of 1 time per hour."
+        return flask.render_template('invite.html', valid=False, code=code, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
+    code = hash(str(time.time()) + flask.session.get('token'))
+    accounts.update_one({'_id': flask.session.get('token')}, {'$set': {'code-gen': time.time()}})
+    invites.insert_one({'_id': code, 'owner': flask.session.get('token'), 'uses': 100, 'timeout': time.time() + 172800})
+
+    return flask.render_template('invite.html', valid=True, code=code, dark=accounts.find_one({'_id': flask.session.get('token')}).get('dark', False))
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if verify(flask.session.get('token')):
@@ -196,6 +212,17 @@ def signup():
         username = flask.request.form['username']
         password = hash(flask.request.form['password'])
         confirm_password = hash(flask.request.form['confirm-password'])
+        invite_code = flask.request.form['invite-code']
+        # validate invite code
+        invite = invites.find_one({'_id': invite_code})
+        if not invite:
+            return flask.render_template('signup.html', error='Invalid invite code.')
+        if invite['uses'] != -1 and invite['uses'] <= 0:
+            return flask.render_template('signup.html', error='Invite code cannot be used anymore.')
+        if invite['timeout'] < time.time() and invite['timeout'] != -1:
+            return flask.render_template('signup.html', error='Invite code has expired.')
+        invites.update_one({'_id': invite_code}, {'$inc': {'uses': -1}})
+
         if len(username) < 4:
             return flask.render_template('signup.html', error='Username must be at least 4 characters long.')
         if len(password) < 4:
@@ -250,6 +277,23 @@ def reset_token():
     if not verify(flask.session.get('token')): return flask.redirect('/login')
     accounts.update_one({'_id': flask.session.get('token')}, {'$set': {'public_token': hash(str(time.time()) + flask.session.get('token'))}})
     return flask.redirect('/')
+
+@app.route('/tutorials')
+def tutorials_route():
+    return flask.render_template('tutorials.html', widgets=
+        tutorials
+    )
+
+@app.route('/view/<post_id>/')
+def alt_view_post(post_id):
+    return flask.redirect('/view/' + post_id)
+
+
+@app.route('/tutorials/<url>')
+def tutorial(url):
+    for tutorial in tutorials:
+        if tutorial['url'] == url:
+            return flask.render_template('tutorials/' + tutorial['url'] + '.html', title=tutorial['title'], description=tutorial['description'])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5080, debug=True)
