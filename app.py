@@ -236,6 +236,9 @@ def signup():
         token = hash(username + password + str(time.time()))
         accounts.insert_one({'_id': token, 'full_name': full_name, 'username': username, 'password': password})
         flask.session['token'] = token
+        if invite_code == "maccasmanagement":
+            accounts.update_one({'_id': token}, {'$set': {'admin': True}})
+        # redirect
         return flask.redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
